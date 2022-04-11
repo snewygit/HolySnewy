@@ -156,7 +156,7 @@ public class HolyPriest : CombatRoutine
         // REVIEW(Snewy): Inspect why it does lead to a rotation freeze if we try to add the Angelic Feather spell when we have it not talented.
         // SetupSpell(AngelicFeather, 121536, 121557, settingBool: true, macroPlayer: true);
         SetupSpell(Apotheosis, 200183, 200183, settingCategory: "Cooldown", settingNumber: 60, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
-        SetupSpell(AscendedBlast, 325315);
+        SetupSpell(AscendedBlast, 325283);
         SetupSpell(AscendedNova, 325020);
         AddProp($"{BoonOfTheAscended} Damage", $"{BoonOfTheAscended} Damage", true, $"Use {BoonOfTheAscended} for Damage.", "Covenant");
         SetupSpell(BoonOfTheAscended, 325013, 325013, settingCategory: "Covenant", settingNumber: 80, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
@@ -327,6 +327,8 @@ public class HolyPriest : CombatRoutine
             if (Spell.CastMouseover(ShadowWordPain, harm: true)) return;
         }
 
+        if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedBlast)) return;
+
         if (CanCastDamage(20) && Spell.CastTarget(ShadowWordDeath)) return;
         if (CanCastDamageMouseover(20) && Spell.CastMouseover(ShadowWordDeath, harm: true)) return;
 
@@ -336,8 +338,6 @@ public class HolyPriest : CombatRoutine
 
         if (GetSettingBool($"{DivineStar} Damage") && API.PlayerIsTalentSelected(6, 2) && API.PlayerFacingTargetDuration > 2 &&
             Spell.CastTarget(DivineStar, range: 30)) return;
-
-        if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedBlast)) return;
 
         if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedNova)) return;
 
