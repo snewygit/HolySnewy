@@ -177,7 +177,8 @@ public class HolyPriest : CombatRoutine
         SetupSpell(HolyNova, 132157);
         SetupSpell(HolyWordChastise, 88625, settingCategory: "Interrupt", settingBool: true, macroMouseover: true);
         SetupSpell(HolyWordSalvation, 265202, settingCategory: "Cooldown", settingNumber: 50, settingNumberAoEGroup: 4, settingNumberAoERaid: 8);
-        SetupSpell(HolyWordSanctify, 34861, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 4, macroCursor: true);
+        SetupSpell(HolyWordSanctify, 34861, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 4,
+            macroCursor: true);
         SetupSpell(HolyWordSerenity, 2050, settingCategory: "Healing", settingNumber: 70, macroFocus: true);
         SetupSpell(MassResurrection, 212036);
         SetupSpell(Mindgames, 323673);
@@ -457,9 +458,10 @@ public class HolyPriest : CombatRoutine
     private void FocusUnit()
     {
         var possibleFocusUnits = GetPossibleFocusUnits();
-        focusUnit = GetFocusUnit(possibleFocusUnits);
-        if (focusUnit is not null)
+        var newFocusUnit = GetFocusUnit(possibleFocusUnits);
+        if (newFocusUnit is not null && (focusUnit is null || newFocusUnit.Id != focusUnit.Id))
         {
+            focusUnit = newFocusUnit;
             API.CastSpell(focusUnit.Id);
         }
     }
