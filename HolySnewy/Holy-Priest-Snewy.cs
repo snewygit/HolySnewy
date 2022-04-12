@@ -33,7 +33,11 @@ public class HolyPriest : CombatRoutine
 
     private Unit? focusUnit;
 
-    private static readonly int[] DispelIds =
+    private static readonly int[] BuffDispelIds =
+    {
+    };
+
+    private static readonly int[] DebuffDispelIds =
     {
         325885, // Anguished Cries
         325224, // Anima Injection
@@ -59,11 +63,11 @@ public class HolyPriest : CombatRoutine
         338353, // Goresplatter
         328180, // Gripping Infection
         320596, // Heaving Retch
+        332605, // Hex
         328002, // Hurl Spores
         317661, // Insidious Venom
         327648, // Internal Strife
         322818, // Lost Confidence
-        235992, // Mana Sting
         324293, // Rasping Scream
         328756, // Repulsive Visage
         332707, // Shadow Word: Pain
@@ -102,10 +106,12 @@ public class HolyPriest : CombatRoutine
     private const string BoonOfTheAscended = "Boon of the Ascended";
     private const string CircleOfHealing = "Circle of Healing";
     private const string DesperatePrayer = "Desperate Prayer";
+    private const string DispelMagic = "Dispel Magic";
     private const string DivineHymn = "Divine Hymn";
     private const string DivineStar = "Divine Star";
     private const string Fade = "Fade";
     private const string FaeGuardians = "Fae Guardians";
+    private const string FlashConcentration = "Flash Concentration";
     private const string FlashHeal = "Flash Heal";
     private const string GuardianSpirit = "Guardian Spirit";
     private const string Halo = "Halo";
@@ -116,7 +122,6 @@ public class HolyPriest : CombatRoutine
     private const string HolyWordSalvation = "Holy Word: Salvation";
     private const string HolyWordSanctify = "Holy Word: Sanctify";
     private const string HolyWordSerenity = "Holy Word: Serenity";
-    private const string IgniteSoul = "Ignite Soul";
     private const string MassResurrection = "Mass Resurrection";
     private const string Mindgames = "Mindgames";
     private const string PhialOfSerenity = "Phial of Serenity";
@@ -162,13 +167,14 @@ public class HolyPriest : CombatRoutine
         SetupSpell(BoonOfTheAscended, 325013, 325013, settingCategory: "Covenant", settingNumber: 80, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
         SetupSpell(CircleOfHealing, 204883, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 4, macroFocus: true);
         SetupSpell(DesperatePrayer, 19236, settingCategory: "Defense", settingNumber: 40);
+        SetupSpell(DispelMagic, 528, settingBool: true);
         SetupSpell(DivineHymn, 64843, settingCategory: "Cooldown", settingNumber: 50, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
         AddProp($"{DivineStar} Damage", $"{DivineStar} Damage", true, $"Use {DivineStar} for Damage.", "Damage");
         SetupSpell(DivineStar, 110744, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 2, settingNumberAoERaid: 3);
         SetupSpell(Fade, 586, settingCategory: "Defense", settingBool: true);
         SetupSpell(FaeGuardians, 327661, settingCategory: "Healing", settingNumber: 80, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
-        AddProp($"{FlashHeal} Concentration", $"{FlashHeal} Concentration", true, $"{FlashHeal} Concentration (Legendary) stacking.", "Healing");
-        SetupSpell(FlashHeal, 2061, 336267, settingCategory: "Healing", settingNumber: 65, macroFocus: true);
+        AddProp(FlashConcentration, FlashConcentration, true, $"{FlashConcentration} (Legendary) stacking.", "Healing");
+        SetupSpell(FlashHeal, 2061, settingCategory: "Healing", settingNumber: 65, macroFocus: true);
         SetupSpell(GuardianSpirit, 47788, settingCategory: "Cooldown", settingNumber: 20, macroFocus: true);
         SetupSpell(Halo, 120517, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
         SetupSpell(Heal, 2060, settingCategory: "Healing", settingNumber: 80, macroFocus: true);
@@ -198,12 +204,13 @@ public class HolyPriest : CombatRoutine
         SetupSpell(UnholyNova, 324724);
 
         // Buffs
+        AddBuff(FlashConcentration, 336267);
         AddBuff(SurgeOfLight, 114255);
+        AddBuffDispell(BuffDispelIds);
 
         // Debuffs
-        AddDebuff(IgniteSoul, 228796);
         AddDebuff(WeakenedSoul, 6788);
-        AddDebuffDispell(DispelIds);
+        AddDebuffDispell(DebuffDispelIds);
 
         // Items
         AddItem(PhialOfSerenity, 177278);
@@ -337,24 +344,24 @@ public class HolyPriest : CombatRoutine
 
         if (Spell.CastTarget(HolyFire, true)) return;
 
-        if (GetSettingBool($"{DivineStar} Damage") && API.PlayerIsTalentSelected(6, 2) && API.PlayerFacingTargetDuration > 2 &&
-            Spell.CastTarget(DivineStar, range: 30)) return;
+        if (GetSettingBool($"{DivineStar} Damage") && API.PlayerIsTalentSelected(6, 2) && API.PlayerFacingTargetDuration > 200 &&
+            Spell.CastTarget(DivineStar, range: 24)) return;
 
         if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedNova)) return;
 
         if (API.ToggleIsEnabled(OffensiveCds))
         {
-            if (PlayerCovenantSettings == "Kyrian" && GetSettingBool($"{BoonOfTheAscended} Damage") && Spell.CastTarget(BoonOfTheAscended, true)) return;
+            if (PlayerCovenantSettings == "Kyrian" && GetSettingBool($"{BoonOfTheAscended} Damage") && Spell.CastTarget(BoonOfTheAscended, true, ttd: 500)) return;
 
-            if (PlayerCovenantSettings == "Venthyr" && Spell.CastTarget(Mindgames, true, ttd: 5)) return;
+            if (PlayerCovenantSettings == "Venthyr" && Spell.CastTarget(Mindgames, true, ttd: 500)) return;
 
-            if (PlayerCovenantSettings == "Necrolord" && Spell.CastTarget(UnholyNova, ttd: 5)) return;
+            if (PlayerCovenantSettings == "Necrolord" && Spell.CastTarget(UnholyNova, ttd: 500)) return;
         }
 
         if (API.PlayerUnitInMeleeRangeCount > AOEUnitNumber && Spell.CastTarget(HolyNova)) return;
 
-        if (API.TargetHasDebuff(ShadowWordPain) == false && Spell.CastTarget(ShadowWordPain, ttd: 6)) return;
-        if (API.MouseoverHasDebuff(ShadowWordPain) == false && Spell.CastMouseover(ShadowWordPain, harm: true, ttd: 6)) return;
+        if (API.TargetHasDebuff(ShadowWordPain) == false && Spell.CastTarget(ShadowWordPain, ttd: 600)) return;
+        if (API.MouseoverHasDebuff(ShadowWordPain) == false && Spell.CastMouseover(ShadowWordPain, harm: true, ttd: 600)) return;
 
         if (Spell.CastTarget(Smite, true)) return;
 
@@ -374,11 +381,11 @@ public class HolyPriest : CombatRoutine
 
     private bool CastDispels()
     {
-        // TODO(Snewy): Add Dispel Magic.
+        if (GetSettingBool(DispelMagic) && TargetHasDispellableBuff() && Spell.CastTarget(DispelMagic, harm: false)) return true;
 
-        if (focusUnit is not null && focusUnit.Priority == Priority.Dispel)
+        if (focusUnit is not null)
         {
-            if (GetSettingBool(Purify) && UnitIsDispellable(focusUnit.Id) && Spell.CastFocus(Purify)) return true;
+            if (GetSettingBool(Purify) && UnitHasDispellableDebuff(focusUnit.Id) && Spell.CastFocus(Purify)) return true;
         }
 
         return false;
@@ -388,7 +395,7 @@ public class HolyPriest : CombatRoutine
     {
         if (focusUnit is null) return false;
 
-        if (GetSettingBool($"{FlashHeal} Concentration") && API.PlayerHasBuff(FlashHeal) && API.PlayerBuffTimeRemaining(FlashHeal) <= 5)
+        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600)
         {
             if (Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
         }
@@ -412,8 +419,7 @@ public class HolyPriest : CombatRoutine
 
         if (CanCastAoEHeal(PrayerOfHealing) && Spell.CastFocus(PrayerOfHealing, true)) return true;
 
-        // REVIEW(Snewy): Review the facing condition.
-        if (CanCastAoEHeal(DivineStar) && API.PlayerFacingTargetDuration > 2 && Spell.Cast(DivineStar)) return true;
+        if (CanCastAoEHeal(DivineStar) && API.PlayerFacingTargetDuration > 200 && API.FocusRange < 24 && Spell.Cast(DivineStar)) return true;
 
         if (PlayerCovenantSettings == "Night Fae" && CanCastAoEHeal(FaeGuardians) && Spell.Cast(FaeGuardians)) return true;
 
@@ -543,7 +549,7 @@ public class HolyPriest : CombatRoutine
                 if (API.ToggleIsEnabled(Dispel) &&
                     unit != "none" &&
                     API.UnitRange(unit) < 40 &&
-                    UnitIsDispellable(unit) &&
+                    UnitHasDispellableDebuff(unit) &&
                     API.CanCast(Purify))
                 {
                     units.Add(new Unit(unit, Priority.Dispel));
@@ -580,7 +586,6 @@ public class HolyPriest : CombatRoutine
         // #3 Tank > Other
         var tankUnit = units.FirstOrDefault(u => u.Priority == Priority.Tank);
         var otherUnit = units.FirstOrDefault(u => u.Priority == Priority.Other);
-        if (otherUnit is not null && otherUnit.Id == "player" && API.PlayerHasDebuff(IgniteSoul)) otherUnit = null;
         if (tankUnit is not null && otherUnit is not null)
         {
             return API.UnitHealthPercent(tankUnit.Id) <= API.UnitHealthPercent(otherUnit.Id) + 5 ? tankUnit : otherUnit;
@@ -615,5 +620,6 @@ public class HolyPriest : CombatRoutine
         if (macroPlayer is not null) AddMacroCastPlayer(name, id);
     }
 
-    private static bool UnitIsDispellable(string unit) => API.UnitHasDebuffDispel(DispelIds, unit, false, true);
+    private static bool TargetHasDispellableBuff() => API.TargetHasBuffDispel(BuffDispelIds);
+    private static bool UnitHasDispellableDebuff(string unit) => API.UnitHasDebuffDispel(DebuffDispelIds, unit, false, true);
 }
