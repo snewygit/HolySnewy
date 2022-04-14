@@ -192,11 +192,11 @@ public class HolyPriest : CombatRoutine
         SetupSpell(PowerInfusion, 10060, settingCategory: "Cooldown", settingBool: true, macroPlayer: true);
         SetupSpell(PowerWordFortitude, 21562, 21562, settingBool: true, macroPlayer: true);
         SetupSpell(PowerWordShield, 17, 17, settingBool: true, macroPlayer: true);
-        SetupSpell(PrayerOfHealing, 596, settingCategory: "Healing", settingNumber: 80, settingNumberAoEGroup: 3, settingNumberAoERaid: 4, macroFocus: true);
+        SetupSpell(PrayerOfHealing, 596, settingCategory: "Healing", settingNumber: 0, settingNumberAoEGroup: 3, settingNumberAoERaid: 4, macroFocus: true);
         SetupSpell(PrayerOfMending, 33076, 41635, settingCategory: "Healing", settingNumber: 99, macroFocus: true);
         SetupSpell(PsychicScream, 8122, settingCategory: "Interrupt", settingBool: false);
         SetupSpell(Purify, 527, settingBool: true, macroFocus: true);
-        SetupSpell(Renew, 139, 139, settingCategory: "Healing", settingNumber: 95, macroFocus: true);
+        SetupSpell(Renew, 139, 139, settingCategory: "Healing", settingNumber: 0, macroFocus: true);
         SetupSpell(Resurrection, 2006);
         SetupSpell(ShadowWordDeath, 32379, macroMouseover: true);
         SetupSpell(ShadowWordPain, 589, debuffId: 589, macroMouseover: true);
