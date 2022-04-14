@@ -324,6 +324,8 @@ public class HolyPriest : CombatRoutine
 
     private void CastDamage()
     {
+        if (API.PlayerIsCasting()) return;
+        
         // Explosives
         if (API.TargetGUIDNPCID == 120651)
         {
@@ -394,12 +396,10 @@ public class HolyPriest : CombatRoutine
 
     private bool CastHealing()
     {
-        if (focusUnit is null || API.PlayerIsCasting(true)) return false;
+        if (focusUnit is null || API.PlayerIsCasting()) return false;
 
-        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600)
-        {
-            if (Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
-        }
+        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600 &&
+            API.PlayerLastSpell != FlashHeal && Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
 
         if (PlayerCovenantSettings == "Kyrian" && API.PlayerHasBuff(BoonOfTheAscended) && CanCastHeal(BoonOfTheAscended) && API.FocusRange < 8 &&
             Spell.Cast(AscendedNova)) return true;
@@ -426,11 +426,11 @@ public class HolyPriest : CombatRoutine
 
         if (CanCastHeal(Renew) && API.FocusHasBuff(Renew) == false && API.UnitBuffCount(Renew) < 3 && Spell.CastFocus(Renew)) return true;
 
-        if (CanCastHeal(FlashHeal) && Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
+        if (CanCastHeal(FlashHeal) && (GetSettingBool(FlashConcentration) == false || API.PlayerBuffStacks(FlashConcentration) < 5) &&
+            Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
 
-        if (CanCastHeal(Heal) &&
-            (API.PlayerHasBuff(SurgeOfLight) || GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) == false ||
-             API.PlayerBuffStacks(FlashConcentration) < 5) && Spell.CastFocus(FlashHeal)) return true;
+        if (CanCastHeal(Heal) && (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) == false ||
+                                  API.PlayerBuffStacks(FlashConcentration) < 5) && Spell.CastFocus(FlashHeal)) return true;
 
         if (CanCastHeal(Heal) && Spell.CastFocus(Heal, true)) return true;
 
