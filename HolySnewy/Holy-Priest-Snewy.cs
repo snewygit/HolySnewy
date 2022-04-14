@@ -233,9 +233,28 @@ public class HolyPriest : CombatRoutine
         {
             FocusUnit();
         }
+
+        if (API.PlayerIsInCombat)
+        {
+            CombatPulseIntern();
+        }
+        else
+        {
+            OutOfCombatPulseIntern();
+        }
     }
 
     public override void CombatPulse()
+    {
+        // TODO(Snewy): WHY IS IT NOT PULSING WHEN THE PLAYER HAS NO TARGET???
+        // IT SHOULD ALWAYS PULSE IF THE PLAYER IS IN COMBAT...
+    }
+
+    public override void OutOfCombatPulse()
+    {
+    }
+
+    private void CombatPulseIntern()
     {
         if (API.PlayerIsMounted || API.PlayerIsChanneling) return;
 
@@ -259,7 +278,7 @@ public class HolyPriest : CombatRoutine
         CastDamage();
     }
 
-    public override void OutOfCombatPulse()
+    private void OutOfCombatPulseIntern()
     {
         if (API.PlayerIsMounted || API.PlayerIsChanneling) return;
 
@@ -288,34 +307,15 @@ public class HolyPriest : CombatRoutine
 
     private bool CastCooldowns()
     {
-        if (focusUnit is not null)
-        {
-            if (API.FocusHealthPercent <= GetSettingNumber(GuardianSpirit))
-            {
-                if (Spell.CastFocus(GuardianSpirit)) return true;
-            }
-        }
+        if (focusUnit is not null && CanCastHeal(GuardianSpirit) && Spell.CastFocus(GuardianSpirit)) return true;
 
-        if (GetSettingBool(PowerInfusion) && API.PlayerIsSolo)
-        {
-            // TODO(Snewy): Add Power Infusion Logic.
-            if (Spell.CastPlayer(PowerInfusion)) return true;
-        }
+        if (GetSettingBool(PowerInfusion) && API.PlayerIsSolo && Spell.CastPlayer(PowerInfusion)) return true;
 
-        if (CanCastAoEHeal(HolyWordSalvation))
-        {
-            if (Spell.Cast(HolyWordSalvation, true)) return true;
-        }
+        if (CanCastAoEHeal(HolyWordSalvation) && Spell.Cast(HolyWordSalvation, true)) return true;
 
-        if (CanCastAoEHeal(DivineHymn))
-        {
-            if (Spell.Cast(DivineHymn, true)) return true;
-        }
+        if (CanCastAoEHeal(DivineHymn) && Spell.Cast(DivineHymn, true)) return true;
 
-        if (CanCastAoEHeal(Apotheosis))
-        {
-            if (Spell.Cast(Apotheosis)) return true;
-        }
+        if (CanCastAoEHeal(Apotheosis) && Spell.Cast(Apotheosis)) return true;
 
         // TODO(Snewy): Add Symbol of Hope.
 
@@ -351,7 +351,8 @@ public class HolyPriest : CombatRoutine
 
         if (API.ToggleIsEnabled(OffensiveCds))
         {
-            if (PlayerCovenantSettings == "Kyrian" && GetSettingBool($"{BoonOfTheAscended} Damage") && Spell.CastTarget(BoonOfTheAscended, true, ttd: 500)) return;
+            if (PlayerCovenantSettings == "Kyrian" && GetSettingBool($"{BoonOfTheAscended} Damage") &&
+                Spell.CastTarget(BoonOfTheAscended, true, ttd: 500)) return;
 
             if (PlayerCovenantSettings == "Venthyr" && Spell.CastTarget(Mindgames, true, ttd: 500)) return;
 
@@ -381,7 +382,7 @@ public class HolyPriest : CombatRoutine
 
     private bool CastDispels()
     {
-        if (GetSettingBool(DispelMagic) && TargetHasDispellableBuff() && Spell.CastTarget(DispelMagic, harm: false)) return true;
+        if (GetSettingBool(DispelMagic) && TargetHasDispellableBuff() && Spell.CastTarget(DispelMagic)) return true;
 
         if (focusUnit is not null)
         {
@@ -393,9 +394,9 @@ public class HolyPriest : CombatRoutine
 
     private bool CastHealing()
     {
-        if (focusUnit is null) return false;
+        if (focusUnit is null || API.PlayerIsCasting(true)) return false;
 
-        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600 && API.PlayerCurrentCastSpellID != 2061)
+        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600)
         {
             if (Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
         }
@@ -427,7 +428,9 @@ public class HolyPriest : CombatRoutine
 
         if (CanCastHeal(FlashHeal) && Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
 
-        if (CanCastHeal(Heal) && API.PlayerHasBuff(SurgeOfLight) && Spell.CastFocus(FlashHeal)) return true;
+        if (CanCastHeal(Heal) &&
+            (API.PlayerHasBuff(SurgeOfLight) || GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) == false ||
+             API.PlayerBuffStacks(FlashConcentration) < 5) && Spell.CastFocus(FlashHeal)) return true;
 
         if (CanCastHeal(Heal) && Spell.CastFocus(Heal, true)) return true;
 
