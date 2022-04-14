@@ -395,7 +395,7 @@ public class HolyPriest : CombatRoutine
     {
         if (focusUnit is null) return false;
 
-        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600)
+        if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600 && API.PlayerCurrentCastSpellID != 2061)
         {
             if (Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
         }
