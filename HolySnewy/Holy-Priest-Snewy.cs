@@ -53,23 +53,34 @@ public class HolyPriest : CombatRoutine
         320512, // Corroded Claws
         319070, // Corrosive Gunk
         325725, // Cosmic Artifice
+        365297, // Crushing Prism
         327481, // Dark Lance
         324652, // Debilitating Plague
         330700, // Decaying Blight
+        364522, // Devouring Blood
+        356324, // Empowered Glyph of Restraint
         328331, // Forced Confession
         // NOTE(Snewy): Manually.
         // 320788, // Frozen Binds
         320248, // Genetic Alteration
+        355915, // Glyph of Restraint
+        364031, // Gloom
         338353, // Goresplatter
         328180, // Gripping Infection
+        346286, // Hazardous Liquids
         320596, // Heaving Retch
         332605, // Hex
         328002, // Hurl Spores
+        357029, // Hyperlight Bomb
         317661, // Insidious Venom
         327648, // Internal Strife
         322818, // Lost Confidence
+        349954, // Purification Protocol
         324293, // Rasping Scream
         328756, // Repulsive Visage
+        // NOTE(Snewy): Manually.
+        // 360687, // Runecarver's Deathtouch
+        355641, // Scintillate
         332707, // Shadow Word: Pain
         334505, // Shimmerdust Sleep
         339237, // Sinlight Visions
@@ -77,8 +88,11 @@ public class HolyPriest : CombatRoutine
         329110, // Slime Injection
         333708, // Soul Corruption
         322557, // Soul Split
+        356031, // Stasis Beam
         326632, // Stony Veins
+        353835, // Suppression
         326607, // Turn to Stone
+        360241, // Unsettling Dreams
         340026, // Wailing Grief
         320529, // Wasting Blight
         341949, // Withering Blight
@@ -138,6 +152,8 @@ public class HolyPriest : CombatRoutine
     private const string ShadowWordPain = "Shadow Word: Pain";
     private const string Smite = "Smite";
     private const string SurgeOfLight = "Surge of Light";
+    private const string Trinket1 = "trinket1";
+    private const string Trinket2 = "trinket2";
     private const string UnholyNova = "Unholy Nova";
     private const string WeakenedSoul = "Weakened Soul";
 
@@ -183,8 +199,7 @@ public class HolyPriest : CombatRoutine
         SetupSpell(HolyNova, 132157);
         SetupSpell(HolyWordChastise, 88625, settingCategory: "Interrupt", settingBool: true, macroMouseover: true);
         SetupSpell(HolyWordSalvation, 265202, settingCategory: "Cooldown", settingNumber: 50, settingNumberAoEGroup: 4, settingNumberAoERaid: 8);
-        SetupSpell(HolyWordSanctify, 34861, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 4,
-            macroCursor: true);
+        SetupSpell(HolyWordSanctify, 34861, settingCategory: "Healing", settingNumber: 85, settingNumberAoEGroup: 3, settingNumberAoERaid: 4, macroCursor: true);
         SetupSpell(HolyWordSerenity, 2050, settingCategory: "Healing", settingNumber: 70, macroFocus: true);
         SetupSpell(MassResurrection, 212036);
         SetupSpell(Mindgames, 323673);
@@ -201,6 +216,10 @@ public class HolyPriest : CombatRoutine
         SetupSpell(ShadowWordDeath, 32379, macroMouseover: true);
         SetupSpell(ShadowWordPain, 589, debuffId: 589, macroMouseover: true);
         SetupSpell(Smite, 585);
+        AddProp(Trinket1, Trinket1, new[] {"Enemy", "Friend"}, "Trinket");
+        SetupSpell(Trinket1, settingCategory: "Trinket", settingNumber: 60, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
+        AddProp(Trinket2, Trinket2, new[] {"Enemy", "Friend"}, "Trinket");
+        SetupSpell(Trinket2, settingCategory: "Trinket", settingNumber: 60, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
         SetupSpell(UnholyNova, 324724);
 
         // Buffs
@@ -218,6 +237,10 @@ public class HolyPriest : CombatRoutine
         // Macros
         foreach (var unit in PartyUnits) AddMacroFocus(unit);
         foreach (var unit in RaidUnits) AddMacroFocus(unit);
+        AddMacroIntern(Trinket1);
+        AddMacroIntern(Trinket2);
+        AddMacroIntern($"{Trinket1} Focus", "/use [@focus] 13");
+        AddMacroIntern($"{Trinket2} Focus", "/use [@focus] 14");
     }
 
     public override void Pulse()
@@ -246,8 +269,7 @@ public class HolyPriest : CombatRoutine
 
     public override void CombatPulse()
     {
-        // TODO(Snewy): WHY IS IT NOT PULSING WHEN THE PLAYER HAS NO TARGET???
-        // IT SHOULD ALWAYS PULSE IF THE PLAYER IS IN COMBAT...
+        // NOTE(Snewy): Is being called ONLY if the player has a valid target - so it is in fact useless for heal rotations.
     }
 
     public override void OutOfCombatPulse()
@@ -319,13 +341,37 @@ public class HolyPriest : CombatRoutine
 
         // TODO(Snewy): Add Symbol of Hope.
 
+        if (GetPropertyString(Trinket1) == "Enemy" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        {
+            API.CastSpell(Trinket1);
+        }
+        if (GetPropertyString(Trinket2) == "Enemy" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        {
+            API.CastSpell(Trinket2);
+        }
+
+        if (GetPropertyString(Trinket1) == "Friend" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        {
+            if (focusUnit is not null && CanCastAoEHeal(Trinket1))
+            {
+                API.CastSpell($"{Trinket1} Focus");
+            }
+        }
+        if (GetPropertyString(Trinket2) == "Friend" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        {
+            if (focusUnit is not null && CanCastAoEHeal(Trinket2))
+            {
+                API.CastSpell($"{Trinket2} Focus");
+            }
+        }
+
         return false;
     }
 
     private void CastDamage()
     {
         if (API.PlayerIsCasting()) return;
-        
+
         // Explosives
         if (API.TargetGUIDNPCID == 120651)
         {
@@ -466,8 +512,17 @@ public class HolyPriest : CombatRoutine
 
     private void FocusUnit()
     {
+        Unit? newFocusUnit;
+        // if (API.MouseoverGUIDNPCID is 182822 or 184493 or 154631)
+        // {
+        //     newFocusUnit = new Unit("mouseover", Priority.Other);
+        // }
+        // else
+        // {
         var possibleFocusUnits = GetPossibleFocusUnits();
-        var newFocusUnit = GetFocusUnit(possibleFocusUnits);
+        newFocusUnit = GetFocusUnit(possibleFocusUnits);
+        // }
+
         if (newFocusUnit is not null && (focusUnit is null || newFocusUnit.Id != focusUnit.Id))
         {
             focusUnit = newFocusUnit;
@@ -605,22 +660,22 @@ public class HolyPriest : CombatRoutine
 
     private static int GetSettingNumberAoERaid(string name) => GetPropertyInt($"{name} AoE Raid");
 
-    private static void SetupSpell(string name, int id, int? buffId = null, int? debuffId = null, string settingCategory = "Misc", bool? settingBool = null,
+    private static void SetupSpell(string name, int? id = null, int? buffId = null, int? debuffId = null, string settingCategory = "Misc", bool? settingBool = null,
         int? settingNumber = null, int? settingNumberAoEGroup = null, int? settingNumberAoERaid = null, bool? macroCursor = null, bool? macroFocus = null,
         bool? macroMouseover = null, bool? macroPlayer = null)
     {
         var (key, mod1, mod2) = KeyBindManager.Next();
-        AddSpell(name, id, key, mod1, mod2);
-        if (buffId is not null) AddBuff(name, id);
-        if (debuffId is not null) AddDebuff(name, id);
+        if (id is not null) AddSpell(name, id.Value, key, mod1, mod2);
+        if (buffId is not null) AddBuff(name, buffId.Value);
+        if (debuffId is not null) AddDebuff(name, debuffId.Value);
         if (settingBool is not null) AddProp(name, name, settingBool.Value, $"Use {name}.", settingCategory);
         if (settingNumber is not null) AddProp($"{name} Percent", $"{name} Percent", settingNumber.Value, $"Use {name}.", settingCategory);
         if (settingNumberAoEGroup is not null) AddProp($"{name} AoE Group", $"{name} AoE Group", settingNumberAoEGroup.Value, $"Use {name}.", settingCategory);
         if (settingNumberAoERaid is not null) AddProp($"{name} AoE Raid", $"{name} AoE Raid", settingNumberAoERaid.Value, $"Use {name}.", settingCategory);
-        if (macroCursor is not null) AddMacroCastCursor(name, id);
-        if (macroFocus is not null) AddMacroCastFocus(name, id);
-        if (macroMouseover is not null) AddMacroCastMouseover(name, id);
-        if (macroPlayer is not null) AddMacroCastPlayer(name, id);
+        if (macroCursor is not null && id is not null) AddMacroCastCursor(name, id.Value);
+        if (macroFocus is not null && id is not null) AddMacroCastFocus(name, id.Value);
+        if (macroMouseover is not null && id is not null) AddMacroCastMouseover(name, id.Value);
+        if (macroPlayer is not null && id is not null) AddMacroCastPlayer(name, id.Value);
     }
 
     private static bool TargetHasDispellableBuff() => API.TargetHasBuffDispel(BuffDispelIds);
