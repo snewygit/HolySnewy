@@ -32,10 +32,10 @@ public class HolyPriest : CombatRoutine
 
     private static readonly string[] RaidUnits =
     {
-        "raid1","raid2","raid3","raid4","raid5","raid6","raid7","raid8","raid9","raid10",
-        "raid11","raid12","raid13","raid14","raid15","raid16","raid17","raid18","raid19","raid20",
-        "raid21","raid22","raid23","raid24","raid25","raid26","raid27","raid28","raid29","raid30",
-        "raid31","raid32","raid33","raid34","raid35","raid36","raid37","raid38","raid39","raid40",
+        "raid1", "raid2", "raid3", "raid4", "raid5", "raid6", "raid7", "raid8", "raid9", "raid10",
+        "raid11", "raid12", "raid13", "raid14", "raid15", "raid16", "raid17", "raid18", "raid19", "raid20",
+        "raid21", "raid22", "raid23", "raid24", "raid25", "raid26", "raid27", "raid28", "raid29", "raid30",
+        "raid31", "raid32", "raid33", "raid34", "raid35", "raid36", "raid37", "raid38", "raid39", "raid40",
     };
 
     private Unit? focusUnit;
@@ -223,9 +223,9 @@ public class HolyPriest : CombatRoutine
         SetupSpell(ShadowWordDeath, 32379, macroMouseover: true);
         SetupSpell(ShadowWordPain, 589, debuffId: 589, macroMouseover: true);
         SetupSpell(Smite, 585);
-        AddProp(Trinket1, Trinket1, new[] {"Enemy", "Friend"}, "Trinket");
+        AddProp(Trinket1, Trinket1, new[] {"Friend", "Enemy"}, Trinket1, "Trinket");
         SetupSpell(Trinket1, settingCategory: "Trinket", settingNumber: 60, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
-        AddProp(Trinket2, Trinket2, new[] {"Enemy", "Friend"}, "Trinket");
+        AddProp(Trinket2, Trinket2, new[] {"Friend", "Enemy"}, Trinket2, "Trinket");
         SetupSpell(Trinket2, settingCategory: "Trinket", settingNumber: 60, settingNumberAoEGroup: 3, settingNumberAoERaid: 6);
         SetupSpell(UnholyNova, 324724);
 
@@ -348,20 +348,8 @@ public class HolyPriest : CombatRoutine
         if (CanCastAoEHeal(Apotheosis) && Spell.Cast(Apotheosis)) return true;
 
         // TODO(Snewy): Add Symbol of Hope.
-
-        if (GetPropertyString(Trinket1) == "Enemy" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
-        {
-            API.CastSpell(Trinket1);
-            return true;
-        }
-
-        if (GetPropertyString(Trinket2) == "Enemy" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
-        {
-            API.CastSpell(Trinket2);
-            return true;
-        }
-
-        if (GetPropertyString(Trinket1) == "Friend" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        
+        if (GetPropertyInt(Trinket1) == 1 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket1))
             {
@@ -370,13 +358,25 @@ public class HolyPriest : CombatRoutine
             }
         }
 
-        if (GetPropertyString(Trinket2) == "Friend" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        if (GetPropertyInt(Trinket2) == 1 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket2))
             {
                 API.CastSpell($"{Trinket2} Focus");
                 return true;
             }
+        }
+        
+        if (GetPropertyInt(Trinket1) == 2 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        {
+            API.CastSpell(Trinket1);
+            return true;
+        }
+
+        if (GetPropertyInt(Trinket2) == 2 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        {
+            API.CastSpell(Trinket2);
+            return true;
         }
 
         return false;
