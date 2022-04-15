@@ -248,7 +248,7 @@ public class HolyPriest : CombatRoutine
         AddMacroIntern($"{Trinket1} Focus", "/use [@focus] 13");
         AddMacroIntern($"{Trinket2} Focus", "/use [@focus] 14");
         foreach (var unit in PartyUnits) AddMacroFocus(unit);
-        foreach (var unit in RaidUnits) AddMacroFocus(unit);
+        foreach (var unit in RaidUnits) AddMacroFocus(unit); // NOTE(Snewy): The macros after raid26 are not working - look into it.
     }
 
     public override void Pulse()
@@ -348,7 +348,7 @@ public class HolyPriest : CombatRoutine
         if (CanCastAoEHeal(Apotheosis) && Spell.Cast(Apotheosis)) return true;
 
         // TODO(Snewy): Add Symbol of Hope.
-        
+
         if (GetPropertyInt(Trinket1) == 1 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket1))
@@ -366,7 +366,7 @@ public class HolyPriest : CombatRoutine
                 return true;
             }
         }
-        
+
         if (GetPropertyInt(Trinket1) == 2 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             API.CastSpell(Trinket1);
