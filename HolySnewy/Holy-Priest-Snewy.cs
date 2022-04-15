@@ -29,7 +29,14 @@ public class HolyPriest : CombatRoutine
     private const string HealOutOfCombat = "Heal Out of Combat";
 
     private static readonly string[] PartyUnits = API.partyunits;
-    private static readonly string[] RaidUnits = API.raidunits;
+
+    private static readonly string[] RaidUnits =
+    {
+        "raid1","raid2","raid3","raid4","raid5","raid6","raid7","raid8","raid9","raid10",
+        "raid11","raid12","raid13","raid14","raid15","raid16","raid17","raid18","raid19","raid20",
+        "raid21","raid22","raid23","raid24","raid25","raid26","raid27","raid28","raid29","raid30",
+        "raid31","raid32","raid33","raid34","raid35","raid36","raid37","raid38","raid39","raid40",
+    };
 
     private Unit? focusUnit;
 
@@ -235,12 +242,13 @@ public class HolyPriest : CombatRoutine
         AddItem(PhialOfSerenity, 177278);
 
         // Macros
-        foreach (var unit in PartyUnits) AddMacroFocus(unit);
-        foreach (var unit in RaidUnits) AddMacroFocus(unit);
+        AddMacroIntern("focus", "/focus");
         AddMacroIntern(Trinket1);
         AddMacroIntern(Trinket2);
         AddMacroIntern($"{Trinket1} Focus", "/use [@focus] 13");
         AddMacroIntern($"{Trinket2} Focus", "/use [@focus] 14");
+        foreach (var unit in PartyUnits) AddMacroFocus(unit);
+        foreach (var unit in RaidUnits) AddMacroFocus(unit);
     }
 
     public override void Pulse()
@@ -344,10 +352,13 @@ public class HolyPriest : CombatRoutine
         if (GetPropertyString(Trinket1) == "Enemy" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             API.CastSpell(Trinket1);
+            return true;
         }
+
         if (GetPropertyString(Trinket2) == "Enemy" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
         {
             API.CastSpell(Trinket2);
+            return true;
         }
 
         if (GetPropertyString(Trinket1) == "Friend" && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
@@ -355,13 +366,16 @@ public class HolyPriest : CombatRoutine
             if (focusUnit is not null && CanCastAoEHeal(Trinket1))
             {
                 API.CastSpell($"{Trinket1} Focus");
+                return true;
             }
         }
+
         if (GetPropertyString(Trinket2) == "Friend" && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket2))
             {
                 API.CastSpell($"{Trinket2} Focus");
+                return true;
             }
         }
 
@@ -513,15 +527,15 @@ public class HolyPriest : CombatRoutine
     private void FocusUnit()
     {
         Unit? newFocusUnit;
-        // if (API.MouseoverGUIDNPCID is 182822 or 184493 or 154631)
-        // {
-        //     newFocusUnit = new Unit("mouseover", Priority.Other);
-        // }
-        // else
-        // {
-        var possibleFocusUnits = GetPossibleFocusUnits();
-        newFocusUnit = GetFocusUnit(possibleFocusUnits);
-        // }
+        if (API.TargetGUIDNPCID is 182822 or 184493)
+        {
+            newFocusUnit = new Unit("focus", Priority.Other);
+        }
+        else
+        {
+            var possibleFocusUnits = GetPossibleFocusUnits();
+            newFocusUnit = GetFocusUnit(possibleFocusUnits);
+        }
 
         if (newFocusUnit is not null && (focusUnit is null || newFocusUnit.Id != focusUnit.Id))
         {
@@ -543,7 +557,7 @@ public class HolyPriest : CombatRoutine
         AddMacroIntern($"{name} Mouseover", $"/cast [@mouseover] #{id}#");
 
     private static void AddMacroCastPlayer(string name, int id) =>
-        AddMacroIntern($"{name} Player", @$"/cast [@player] #{id}#");
+        AddMacroIntern($"{name} Player", $"/cast [@player] #{id}#");
 
     private static void AddMacroIntern(string name, string text = "")
     {
