@@ -248,7 +248,15 @@ public class HolyPriest : CombatRoutine
         AddMacroIntern($"{Trinket1} Focus", "/use [@focus] 13");
         AddMacroIntern($"{Trinket2} Focus", "/use [@focus] 14");
         foreach (var unit in PartyUnits) AddMacroFocus(unit);
-        foreach (var unit in RaidUnits) AddMacroFocus(unit); // NOTE(Snewy): The macros after raid26 are not working - look into it.
+        foreach (var unit in RaidUnits)
+        {
+            AddMacroFocus(unit);
+            if (unit == CONST.Units.RAID25)
+            {
+                AddMacroIntern("Target Player", "/target player");
+            }
+        }
+        // foreach (var unit in RaidUnits) AddMacroFocus(unit); // NOTE(Snewy): The macros after raid26 are not working - look into it.
     }
 
     public override void Pulse()
@@ -562,6 +570,7 @@ public class HolyPriest : CombatRoutine
     private static void AddMacroIntern(string name, string text = "")
     {
         var (key, mod1, mod2) = KeyBindManager.Next();
+        API.WriteLog($"Name: {name}, Key: {key}, Mod1: {mod1}, Mod2: {mod2}");
         AddMacro(name, key, mod1, mod2, text);
     }
 
@@ -679,6 +688,7 @@ public class HolyPriest : CombatRoutine
         bool? macroMouseover = null, bool? macroPlayer = null)
     {
         var (key, mod1, mod2) = KeyBindManager.Next();
+        API.WriteLog($"Name: {name}, Key: {key}, Mod1: {mod1}, Mod2: {mod2}");
         if (id is not null) AddSpell(name, id.Value, key, mod1, mod2);
         if (buffId is not null) AddBuff(name, buffId.Value);
         if (debuffId is not null) AddDebuff(name, debuffId.Value);
