@@ -348,7 +348,7 @@ public class HolyPriest : CombatRoutine
 
         // TODO(Snewy): Add Symbol of Hope.
 
-        if (GetPropertyInt(Trinket1) == 1 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        if (GetPropertyInt(Trinket1) == 0 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket1))
             {
@@ -357,7 +357,7 @@ public class HolyPriest : CombatRoutine
             }
         }
 
-        if (GetPropertyInt(Trinket2) == 1 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        if (GetPropertyInt(Trinket2) == 0 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
         {
             if (focusUnit is not null && CanCastAoEHeal(Trinket2))
             {
@@ -366,13 +366,13 @@ public class HolyPriest : CombatRoutine
             }
         }
 
-        if (GetPropertyInt(Trinket1) == 2 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
+        if (GetPropertyInt(Trinket1) == 1 && API.PlayerTrinketIsUsable(1) && API.PlayerTrinketRemainingCD(1) == 0)
         {
             API.CastSpell(Trinket1);
             return true;
         }
 
-        if (GetPropertyInt(Trinket2) == 2 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
+        if (GetPropertyInt(Trinket2) == 1 && API.PlayerTrinketIsUsable(2) && API.PlayerTrinketRemainingCD(2) == 0)
         {
             API.CastSpell(Trinket2);
             return true;
@@ -401,14 +401,14 @@ public class HolyPriest : CombatRoutine
         if (CanCastDamage(20) && Spell.CastTarget(ShadowWordDeath)) return;
         if (CanCastDamageMouseover(20) && Spell.CastMouseover(ShadowWordDeath, harm: true)) return;
 
+        if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedNova)) return;
+
         if (Spell.CastTarget(HolyWordChastise, range: 30)) return;
 
         if (Spell.CastTarget(HolyFire, true)) return;
 
         if (GetSettingBool($"{DivineStar} Damage") && API.PlayerIsTalentSelected(6, 2) && API.PlayerFacingTargetDuration > 200 &&
             Spell.CastTarget(DivineStar, range: 24)) return;
-
-        if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedNova)) return;
 
         if (API.ToggleIsEnabled(OffensiveCds))
         {
@@ -460,7 +460,9 @@ public class HolyPriest : CombatRoutine
         if (GetSettingBool(FlashConcentration) && API.PlayerHasBuff(FlashConcentration) && API.PlayerBuffTimeRemaining(FlashConcentration) <= 600 &&
             API.PlayerLastSpell != FlashHeal && Spell.CastFocus(FlashHeal, API.PlayerHasBuff(SurgeOfLight) == false)) return true;
 
-        if (PlayerCovenantSettings == "Kyrian" && API.PlayerHasBuff(BoonOfTheAscended) && CanCastHeal(BoonOfTheAscended) && API.FocusRange < 8 &&
+        if (API.PlayerHasBuff(BoonOfTheAscended) && Spell.CastTarget(AscendedBlast)) return true;
+
+        if (API.PlayerHasBuff(BoonOfTheAscended) && CanCastHeal(BoonOfTheAscended) && API.FocusRange < 8 &&
             Spell.Cast(AscendedNova)) return true;
 
         if (CanCastAoEHeal(HolyWordSanctify) && Spell.CastCursor(HolyWordSanctify)) return true;
