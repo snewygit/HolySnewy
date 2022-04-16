@@ -82,6 +82,7 @@ public class HolyPriest : CombatRoutine
         317661, // Insidious Venom
         327648, // Internal Strife
         322818, // Lost Confidence
+        319626, // Phantasmal Parasite
         349954, // Purification Protocol
         324293, // Rasping Scream
         328756, // Repulsive Visage
