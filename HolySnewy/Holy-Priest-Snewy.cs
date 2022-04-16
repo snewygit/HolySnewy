@@ -170,6 +170,7 @@ public class HolyPriest : CombatRoutine
     {
         Name = "Holy Priest by Snewy";
         isAutoBindReady = true;
+        isHealingRotationFocus = true;
 
         API.WriteLog(Name);
 
@@ -247,16 +248,6 @@ public class HolyPriest : CombatRoutine
         AddMacroIntern(Trinket2);
         AddMacroIntern($"{Trinket1} Focus", "/use [@focus] 13");
         AddMacroIntern($"{Trinket2} Focus", "/use [@focus] 14");
-        foreach (var unit in PartyUnits) AddMacroFocus(unit);
-        foreach (var unit in RaidUnits)
-        {
-            AddMacroFocus(unit);
-            if (unit == CONST.Units.RAID25)
-            {
-                AddMacroIntern("Target Player", "/target player");
-            }
-        }
-        // foreach (var unit in RaidUnits) AddMacroFocus(unit); // NOTE(Snewy): The macros after raid26 are not working - look into it.
     }
 
     public override void Pulse()
@@ -535,7 +526,8 @@ public class HolyPriest : CombatRoutine
     private void FocusUnit()
     {
         Unit? newFocusUnit;
-        if (API.TargetGUIDNPCID is 182822 or 184493)
+        // NOTE(Snewy): Sepulcher Heal Adds.
+        if (API.TargetGUIDNPCID is 182822 or 184493 && API.TargetHealthPercent < 100)
         {
             newFocusUnit = new Unit("focus", Priority.Other);
         }
@@ -551,8 +543,6 @@ public class HolyPriest : CombatRoutine
             API.CastSpell(focusUnit.Id);
         }
     }
-
-    private static void AddMacroFocus(string name) => AddMacroIntern(name, $"/focus {name}");
 
     private static void AddMacroCastCursor(string name, int id) =>
         AddMacroIntern($"{name} Cursor", @$"/cast [@cursor] #{id}#
@@ -570,7 +560,6 @@ public class HolyPriest : CombatRoutine
     private static void AddMacroIntern(string name, string text = "")
     {
         var (key, mod1, mod2) = KeyBindManager.Next();
-        API.WriteLog($"Name: {name}, Key: {key}, Mod1: {mod1}, Mod2: {mod2}");
         AddMacro(name, key, mod1, mod2, text);
     }
 
@@ -688,7 +677,6 @@ public class HolyPriest : CombatRoutine
         bool? macroMouseover = null, bool? macroPlayer = null)
     {
         var (key, mod1, mod2) = KeyBindManager.Next();
-        API.WriteLog($"Name: {name}, Key: {key}, Mod1: {mod1}, Mod2: {mod2}");
         if (id is not null) AddSpell(name, id.Value, key, mod1, mod2);
         if (buffId is not null) AddBuff(name, buffId.Value);
         if (debuffId is not null) AddDebuff(name, debuffId.Value);
