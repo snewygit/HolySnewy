@@ -537,7 +537,7 @@ public class HolyPriest : CombatRoutine
             newFocusUnit = GetFocusUnit(possibleFocusUnits);
         }
 
-        if (newFocusUnit is not null && (focusUnit is null || newFocusUnit.Id != focusUnit.Id))
+        if (newFocusUnit is not null && (focusUnit is null || API.FocusMaxHealth == 0 || newFocusUnit.Id != focusUnit.Id))
         {
             focusUnit = newFocusUnit;
             API.CastSpell(focusUnit.Id);
